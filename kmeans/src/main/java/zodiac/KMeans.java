@@ -1,14 +1,14 @@
 package zodiac;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.Job;
 
 
 import java.util.List;
@@ -23,9 +23,9 @@ public class KMeans {
 
         for(int i=0; i<5; i++)
             System.out.println(args[i]);
-        Path input = new Path(args[0]);
-        Path output = new Path(args[1]);
-        Path centers = new Path(input.getParent().toString() + "kcenters");
+        Path inputPath = new Path(args[0]);
+        Path outputPath = new Path(args[1]);
+        Path centers = new Path(inputPath.getParent().toString() + "kcenters");
 
         configuration.set("centersFilePath", centers.toString());
         configuration.setDouble("conv_threshold", Double.parseDouble(args[4]));
@@ -37,10 +37,10 @@ public class KMeans {
 
         Job job;
 
-        FileSystem fs = FileSystem.get(output.toUri(),configuration);
-        if (fs.exists(output)) {
-            System.out.println("Delete old output folder: " + output.toString());
-            fs.delete(output, true);
+        FileSystem fs = FileSystem.get(outputPath.toUri(),configuration);
+        if (fs.exists(outputPath)) {
+            System.out.println("Delete old output folder: " + outputPath.toString());
+            fs.delete(outputPath, true);
         }
 
         createCenters(k, configuration, centers);
@@ -54,8 +54,8 @@ public class KMeans {
             job.setCombinerClass(Combine.class);
             job.setReducerClass(Reduce.class);
 
-            FileInputFormat.addInputPath(job, input);
-            FileOutputFormat.setOutputPath(job, output);
+            FileInputFormat.addInputPath(job, inputPath);
+            FileOutputFormat.setOutputPath(job, outputPath);
             job.setMapOutputKeyClass(Center.class);
             job.setMapOutputValueClass(Point.class);
 
@@ -64,7 +64,7 @@ public class KMeans {
             isConverged = job.getCounters().findCounter(Reduce.CONVERGE_STATUS.CONVERGED).getValue();
 
             //if(isConverged!=1)
-            fs.delete(output, true);
+            fs.delete(outputPath, true);
             iterations++;
         }
         
@@ -72,8 +72,8 @@ public class KMeans {
         job.setJarByClass(KMeans.class);
         job.setMapperClass(Map.class);
 
-        FileInputFormat.addInputPath(job, input);
-        FileOutputFormat.setOutputPath(job, output);
+        FileInputFormat.addInputPath(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
         job.setMapOutputKeyClass(Center.class);
         job.setMapOutputValueClass(Point.class);
 
