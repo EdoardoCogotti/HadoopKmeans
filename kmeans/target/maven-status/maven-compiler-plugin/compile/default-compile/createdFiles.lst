@@ -1,0 +1,8 @@
+zodiac/Distance.class
+zodiac/Point.class
+zodiac/Center.class
+zodiac/KMeans.class
+zodiac/Reduce$CONVERGE_STATUS.class
+zodiac/Map.class
+zodiac/Reduce.class
+zodiac/Combine.class
