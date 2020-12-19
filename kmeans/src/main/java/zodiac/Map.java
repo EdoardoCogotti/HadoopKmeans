@@ -2,16 +2,16 @@ package zodiac;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.io.IntWritable;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Map extends Mapper<Object, Text, Center, Point> {
     private List<Center> centers = new ArrayList<Center>();
@@ -39,23 +39,19 @@ public class Map extends Mapper<Object, Text, Center, Point> {
 
     @Override
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        StringTokenizer coordsString = new StringTokenizer(value.toString(),  ",");
-        List<DoubleWritable> coords = new ArrayList<DoubleWritable>();
-
-        //Cicle throw the coordinates of the point
-        while (coordsString.hasMoreTokens()) {
-            coords.add(new DoubleWritable(Double.parseDouble(coordsString.nextToken())));
+        String line = value.toString();
+        List<DoubleWritable> spaceValues = new ArrayList<DoubleWritable>();
+        StringTokenizer tokenizer = new StringTokenizer(line, ",");
+        while (tokenizer.hasMoreTokens()) {
+            spaceValues.add(new DoubleWritable(Double.parseDouble(tokenizer.nextToken())));
         }
-
-        //Point for which we search the closest center
-        Point queryPoint = new Point(coords);
+        Point queryPoint = new Point(spaceValues);
 
         Center minDistanceCenter = null;
         Double minDistance = Double.MAX_VALUE;
         Double distanceTemp=0.0;
-        //We cicle throw centroids
         for (Center cent : centers) {
-            //Calculate distance from point to centroid
+            //distanceTemp = Distance.findDistance(c, p);
             List<DoubleWritable> centList = cent.getValues();
             List<DoubleWritable> qList = queryPoint.getValues();
             Double dist = 0.0;
@@ -64,14 +60,12 @@ public class Map extends Mapper<Object, Text, Center, Point> {
             }
             dist =  Math.sqrt(dist);
 
-            //is it the closest centroid for now ?
+            //if (minDistance > distanceTemp) {
             if(minDistance > dist){
                 minDistanceCenter = cent;
                 minDistance = dist;
             }
         }
-
-        //output (key, value) of the mapper
         context.write(minDistanceCenter, queryPoint);
     }
 
