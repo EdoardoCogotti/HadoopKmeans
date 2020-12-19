@@ -1,14 +1,14 @@
 package zodiac;
 
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
 public class Combine extends Reducer<Center, Point, Center, Point> {
 
-    @Override
+    
     public void reduce(Center key, Iterable<Point> values, Context context)
             throws IOException, InterruptedException {
         Configuration configuration = context.getConfiguration();

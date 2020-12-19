@@ -1,13 +1,13 @@
 package zodiac;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.DoubleWritable;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.List;
 
 public class Center extends Point {
 
@@ -88,7 +88,7 @@ public class Center extends Point {
         }
     }
 
-    void addNumberOfPoints(IntWritable i) {
+    void addPoints(IntWritable i) {
         this.centerCardinality = new IntWritable(this.centerCardinality.get() + i.get());
     }
 

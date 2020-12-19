@@ -1,7 +1,7 @@
 package zodiac;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.DoubleWritable;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

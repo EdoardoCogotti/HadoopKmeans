@@ -1,19 +1,20 @@
 package zodiac;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.Job;
 
-import java.io.IOException;
-import java.util.ArrayList;
+
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
+import java.io.IOException;
 
 public class KMeans {
 
@@ -58,20 +59,15 @@ public class KMeans {
             job.setMapOutputKeyClass(Center.class);
             job.setMapOutputValueClass(Point.class);
 
-            //
-            job.setOutputKeyClass(IntWritable.class);
-            job.setOutputValueClass(Center.class);
-            //
-
             job.waitForCompletion(true);
 
             isConverged = job.getCounters().findCounter(Reduce.CONVERGE_STATUS.CONVERGED).getValue();
 
-            if(isConverged!=1)
-                fs.delete(output, true);
+            //if(isConverged!=1)
+            fs.delete(output, true);
             iterations++;
         }
-        /*
+        
         job = Job.getInstance(configuration, "K means map");
         job.setJarByClass(KMeans.class);
         job.setMapperClass(Map.class);
@@ -82,7 +78,7 @@ public class KMeans {
         job.setMapOutputValueClass(Point.class);
 
         job.waitForCompletion(true);
-        */
+        
         //fs.delete(centers.getParent(), true);
         System.out.println("Number of iterations\t" + iterations);
     }

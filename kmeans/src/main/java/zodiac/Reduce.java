@@ -1,16 +1,16 @@
 package zodiac;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.DoubleWritable;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Iterator;
+import java.io.IOException;
 
 public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
 
@@ -20,7 +20,7 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
     // (new centers are evaluated in clean up phase)
     private HashMap<IntWritable, Center> newCenters = new HashMap<IntWritable, Center>();
     private HashMap<IntWritable, Center> oldCenters = new HashMap<IntWritable, Center>();
-    private int iConvergedCenters = 0;
+    private int convCenters = 0;
 
     public enum CONVERGE_STATUS { CONVERGED }
 
@@ -33,13 +33,13 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
         Center newCenter = new Center(configuration.getInt("numDimension", 2));
 
         // check if a new center for this cluster has already been calculated
-        boolean flagOld = false;
+        boolean alreadyInNewCentersFlag = false;
         if (newCenters.containsKey(key.getCenterIndex())) {
             newCenter = newCenters.get(key.getCenterIndex());
-            flagOld = true;
+            alreadyInNewCentersFlag = true;
         }
 
-        int numElements = 0;
+        int newElements = 0;
         Double tempSum=0.0;
         for (Point p : values) {
             for (int i = 0; i < p.getValues().size(); i++) {
@@ -49,12 +49,12 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
                 tempSum = newCenter.getValues().get(i).get() + p.getValues().get(i).get();
                 newCenter.getValues().get(i).set(tempSum);
             }
-            numElements += key.getCenterCardinality().get(); //to "know" size of an Iterable
+            newElements += key.getCenterCardinality().get(); //to "know" size of an Iterable
         }
         newCenter.setCenterIndex(key.getCenterIndex());
-        newCenter.addNumberOfPoints(new IntWritable(numElements));
+        newCenter.addPoints(new IntWritable(newElements));
 
-        if (!flagOld) {
+        if (!alreadyInNewCentersFlag) {
             newCenters.put(newCenter.getCenterIndex(), newCenter);
             oldCenters.put(key.getCenterIndex(), new Center(key));
         }
@@ -62,7 +62,6 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
         context.write(newCenter.getCenterIndex(), newCenter);
     }
 
-    @Override
     protected void cleanup(Context context) throws IOException, InterruptedException {
         Configuration configuration = context.getConfiguration();
         Path centersPath = new Path(configuration.get("centersFilePath"));
@@ -81,7 +80,7 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
             newCenterValue.divideCoordinates();
             sameIndexC = oldCenters.get(newCenterValue.getCenterIndex());
             if (newCenterValue.isConverged(sameIndexC, threshold))
-                iConvergedCenters++;
+                convCenters++;
 
             List<DoubleWritable> centList = newCenterValue.getValues();
             List<DoubleWritable> qList = sameIndexC.getValues();
@@ -91,12 +90,12 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
             }
             dist =  Math.sqrt(dist);
             avgValue += Math.pow(dist,2);
-            //avgValue += Math.pow(Distance.findDistance(newCenterValue, sameIndexC), 2);
+            
             centerWriter.append(newCenterValue.getCenterIndex(), newCenterValue);
         }
         avgValue = Math.sqrt(avgValue / k);
         int percentSize = (newCenters.size() * 90) / 100;
-        if (iConvergedCenters >= percentSize || avgValue < threshold)
+        if (convCenters >= percentSize || avgValue < threshold)
             context.getCounter(CONVERGE_STATUS.CONVERGED).increment(1);
         centerWriter.close();
     }
