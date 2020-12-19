@@ -61,7 +61,7 @@ public class Center extends Point {
         this.centerCardinality = new IntWritable(this.centerCardinality.get() + i.get());
     }
 
-    boolean isConverged(Center c, Double conv_threshold) {
+    boolean isConverged(Center c, Double threshold) {
         //get distance
         List<DoubleWritable> centList = this.getValues();
         List<DoubleWritable> qList = c.getValues();
@@ -71,7 +71,7 @@ public class Center extends Point {
         }
         dist =  Math.sqrt(dist);
 
-        return conv_threshold > dist;
+        return threshold > dist;
     }
 
     public String toString() {

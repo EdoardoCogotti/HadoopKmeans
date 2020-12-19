@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 zodiac/KmeansMapper.class
 zodiac/Point.class
 zodiac/Center.class
@@ -5,3 +6,12 @@ zodiac/KmeansReducer.class
 zodiac/KmeansReducer$CONVERGE_STATUS.class
 zodiac/KmeansCombiner.class
 zodiac/Kmeans.class
+=======
+zodiac/Point.class
+zodiac/Center.class
+zodiac/KMeans.class
+zodiac/Map.class
+zodiac/Reduce$CONVERGE_STATUS.class
+zodiac/Reduce.class
+zodiac/Combine.class
+>>>>>>> 4429ad74be944ffee9cb0dc71660c4ab5e174ae9
