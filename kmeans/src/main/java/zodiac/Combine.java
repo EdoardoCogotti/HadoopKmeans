@@ -13,13 +13,13 @@ public class Combine extends Reducer<Center, Point, Center, Point> {
             throws IOException, InterruptedException {
         Configuration configuration = context.getConfiguration();
 
-        Point sumValues = new Point(configuration.getInt("numDimensions", 2));
         int countValues = 0;
-        Double temp;
+        Double tmp=0.0;
+        Point sumValues = new Point(configuration.getInt("numDimensions", 2));
         for (Point p : values) {
             for (int i = 0; i < p.getValues().size(); i++) {
-                temp = sumValues.getValues().get(i).get() + p.getValues().get(i).get();
-                sumValues.getValues().get(i).set(temp);
+                tmp = sumValues.getValues().get(i).get() + p.getValues().get(i).get();
+                sumValues.getValues().get(i).set(tmp);
             }
             countValues++;
         }

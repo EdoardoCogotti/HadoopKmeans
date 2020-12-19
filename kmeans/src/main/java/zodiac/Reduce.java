@@ -15,11 +15,11 @@ import java.io.IOException;
 public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
 
     // We use hash maps in order to link cluster index (int) and cluster centers
-    // oldCenters contains not updated values
-    // newCenters contains sum values and cardinality of the cluster 
+    // oldCentersMap contains not updated values
+    // newCentersMap contains sum values and cardinality of the cluster 
     // (new centers are evaluated in clean up phase)
-    private HashMap<IntWritable, Center> newCenters = new HashMap<IntWritable, Center>();
-    private HashMap<IntWritable, Center> oldCenters = new HashMap<IntWritable, Center>();
+    private HashMap<IntWritable, Center> newCentersMap = new HashMap<IntWritable, Center>();
+    private HashMap<IntWritable, Center> oldCentersMap = new HashMap<IntWritable, Center>();
     private int convCenters = 0;
 
     public enum CONVERGE_STATUS { CONVERGED }
@@ -33,10 +33,10 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
         Center newCenter = new Center(configuration.getInt("numDimension", 2));
 
         // check if a new center for this cluster has already been calculated
-        boolean alreadyInNewCentersFlag = false;
-        if (newCenters.containsKey(key.getCenterIndex())) {
-            newCenter = newCenters.get(key.getCenterIndex());
-            alreadyInNewCentersFlag = true;
+        boolean alreadyInMapFlag = false;
+        if (newCentersMap.containsKey(key.getCenterIndex())) {
+            newCenter = newCentersMap.get(key.getCenterIndex());
+            alreadyInMapFlag = true;
         }
 
         int newElements = 0;
@@ -54,9 +54,9 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
         newCenter.setCenterIndex(key.getCenterIndex());
         newCenter.addPoints(new IntWritable(newElements));
 
-        if (!alreadyInNewCentersFlag) {
-            newCenters.put(newCenter.getCenterIndex(), newCenter);
-            oldCenters.put(key.getCenterIndex(), new Center(key));
+        if (!alreadyInMapFlag) {
+            newCentersMap.put(newCenter.getCenterIndex(), newCenter);
+            oldCentersMap.put(key.getCenterIndex(), new Center(key));
         }
 
         context.write(newCenter.getCenterIndex(), newCenter);
@@ -69,7 +69,7 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
                 SequenceFile.Writer.file(centersPath),
                 SequenceFile.Writer.keyClass(IntWritable.class),
                 SequenceFile.Writer.valueClass(Center.class));
-        Iterator<Center> it = newCenters.values().iterator();
+        Iterator<Center> it = newCentersMap.values().iterator();
         Center newCenterValue;
         Center sameIndexC;
         Double avgValue = 0.0;
@@ -78,7 +78,7 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
         while (it.hasNext()) {
             newCenterValue = it.next();
             newCenterValue.divideCoordinates();
-            sameIndexC = oldCenters.get(newCenterValue.getCenterIndex());
+            sameIndexC = oldCentersMap.get(newCenterValue.getCenterIndex());
             if (newCenterValue.isConverged(sameIndexC, threshold))
                 convCenters++;
 
@@ -94,7 +94,7 @@ public class Reduce extends Reducer<Center, Point, IntWritable, Center> {
             centerWriter.append(newCenterValue.getCenterIndex(), newCenterValue);
         }
         avgValue = Math.sqrt(avgValue / k);
-        int percentSize = (newCenters.size() * 90) / 100;
+        int percentSize = (newCentersMap.size() * 90) / 100;
         if (convCenters >= percentSize || avgValue < threshold)
             context.getCounter(CONVERGE_STATUS.CONVERGED).increment(1);
         centerWriter.close();

@@ -17,12 +17,6 @@ public class Center extends Point {
     private IntWritable centerIndex;
     private IntWritable centerCardinality;
 
-    Center(List<DoubleWritable> list, IntWritable centerIndex, IntWritable centerCardinality) {
-        super(list);
-        this.centerIndex = new IntWritable(centerIndex.get());
-        this.centerCardinality = new IntWritable(centerCardinality.get());
-    }
-
     Center() {
         super();
     }
@@ -36,6 +30,12 @@ public class Center extends Point {
         super(l);
         centerIndex = new IntWritable(0);
         centerCardinality = new IntWritable(0);
+    }
+
+    Center(List<DoubleWritable> list, IntWritable centerIndex, IntWritable centerCardinality) {
+        super(list);
+        this.centerIndex = new IntWritable(centerIndex.get());
+        this.centerCardinality = new IntWritable(centerCardinality.get());
     }
 
     Center(Center c) {

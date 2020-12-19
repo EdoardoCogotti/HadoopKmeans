@@ -14,13 +14,6 @@ public class Point implements WritableComparable<Center> {
 
     private List<DoubleWritable> values;
 
-    Point(List<DoubleWritable> values) {
-        this.values = new ArrayList<DoubleWritable>();
-        for (DoubleWritable p : values) {
-            this.values.add(p);
-        }
-    }
-
     Point() {
         this.values = new ArrayList<DoubleWritable>();
     }
@@ -31,10 +24,31 @@ public class Point implements WritableComparable<Center> {
             values.add(new DoubleWritable(0.0));
     }
 
+    Point(List<DoubleWritable> values) {
+        this.values = new ArrayList<DoubleWritable>();
+        for (DoubleWritable p : values) {
+            this.values.add(p);
+        }
+    }
+
+    List<DoubleWritable> getValues() {
+        return values;
+    }
+
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder(); // String in Java are immutable
+        for (DoubleWritable v : this.values){
+           sb.append(v.get()+';');
+        }
+        String str = sb.toString();
+        return str;
+    }
+
     public void readFields(DataInput dataInput) throws IOException {
-        int iParams = dataInput.readInt();
+        int NumParameters = dataInput.readInt();
         values = new ArrayList<DoubleWritable>();
-        for (int i = 0; i < iParams; i++) {
+        for (int i = 0; i < NumParameters; i++) {
             values.add(new DoubleWritable(dataInput.readDouble()));
         }
     }
@@ -46,21 +60,8 @@ public class Point implements WritableComparable<Center> {
         }
     }
 
-    public String toString() {
-        String elements = "";
-        for (DoubleWritable e : values) {
-            elements += e.get() + ";";
-        }
-        return elements;
-    }
-
     public int compareTo(@Nonnull Center p) {
         return 0;
-    }
-
-
-    List<DoubleWritable> getValues() {
-        return values;
     }
 
 }

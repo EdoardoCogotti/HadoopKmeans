@@ -63,7 +63,6 @@ public class KMeans {
 
             isConverged = job.getCounters().findCounter(Reduce.CONVERGE_STATUS.CONVERGED).getValue();
 
-            //if(isConverged!=1)
             fs.delete(output, true);
             iterations++;
         }
