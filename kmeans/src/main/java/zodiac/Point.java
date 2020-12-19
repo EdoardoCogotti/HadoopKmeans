@@ -1,26 +1,27 @@
 package zodiac;
 
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.WritableComparable;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class Point implements WritableComparable<Center> {
 
     private List<DoubleWritable> values;
 
     Point() {
-        this.values = new ArrayList<DoubleWritable>();
+        values = new ArrayList<DoubleWritable>();
     }
 
-    Point(int numDimensions) {
-        this.values = new ArrayList<DoubleWritable>();
-        for (int i = 0; i < numDimensions; i++)
+    Point(int n) {
+        values = new ArrayList<DoubleWritable>();
+        for (int i = 0; i < n; i++)
             values.add(new DoubleWritable(0.0));
     }
 
@@ -36,19 +37,17 @@ public class Point implements WritableComparable<Center> {
     }
 
     public String toString() {
-
-        StringBuilder sb = new StringBuilder(); // String in Java are immutable
-        for (DoubleWritable v : this.values){
-           sb.append(v.get()+';');
+        String elements = "";
+        for (DoubleWritable e : values) {
+            elements += e.get() + ";";
         }
-        String str = sb.toString();
-        return str;
+        return elements;
     }
 
     public void readFields(DataInput dataInput) throws IOException {
-        int NumParameters = dataInput.readInt();
+        int parameters = dataInput.readInt();
         values = new ArrayList<DoubleWritable>();
-        for (int i = 0; i < NumParameters; i++) {
+        for (int i = 0; i < parameters; i++) {
             values.add(new DoubleWritable(dataInput.readDouble()));
         }
     }

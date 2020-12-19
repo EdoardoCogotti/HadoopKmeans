@@ -1,22 +1,21 @@
 package zodiac;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.Job;
 
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-public class KMeans {
+public class Kmeans {
 
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
@@ -25,7 +24,7 @@ public class KMeans {
             System.out.println(args[i]);
         Path input = new Path(args[0]);
         Path output = new Path(args[1]);
-        Path centers = new Path(input.getParent().toString() + "kcenters");
+        Path centers = new Path(input.getParent().toString() + "centersFile");
 
         configuration.set("centersFilePath", centers.toString());
         configuration.setDouble("conv_threshold", Double.parseDouble(args[4]));
@@ -45,14 +44,14 @@ public class KMeans {
 
         createCenters(k, configuration, centers);
 
-        long isConverged = 0;
+        long stopCondition = 0;
         int iterations = 0;
-        while (isConverged != 1) {
+        while (stopCondition != 1) {
             job = Job.getInstance(configuration, "K means iter");
-            job.setJarByClass(KMeans.class);
-            job.setMapperClass(Map.class);
-            job.setCombinerClass(Combine.class);
-            job.setReducerClass(Reduce.class);
+            job.setJarByClass(Kmeans.class);
+            job.setMapperClass(KmeansMapper.class);
+            job.setCombinerClass(KmeansCombiner.class);
+            job.setReducerClass(KmeansReducer.class);
 
             FileInputFormat.addInputPath(job, input);
             FileOutputFormat.setOutputPath(job, output);
@@ -61,23 +60,26 @@ public class KMeans {
 
             job.waitForCompletion(true);
 
-            isConverged = job.getCounters().findCounter(Reduce.CONVERGE_STATUS.CONVERGED).getValue();
+            stopCondition = job.getCounters().findCounter(KmeansReducer.CONVERGE_STATUS.CONVERGED).getValue();
 
+            //if(stopCondition!=1)
             fs.delete(output, true);
             iterations++;
         }
-        
-        job = Job.getInstance(configuration, "K means map");
-        job.setJarByClass(KMeans.class);
-        job.setMapperClass(Map.class);
 
-        FileInputFormat.addInputPath(job, input);
-        FileOutputFormat.setOutputPath(job, output);
-        job.setMapOutputKeyClass(Center.class);
-        job.setMapOutputValueClass(Point.class);
+        Job job2 = Job.getInstance(configuration, "K means map");
+        job2.setJarByClass(Kmeans.class);
+        job2.setMapperClass(KmeansMapper.class);
 
-        job.waitForCompletion(true);
-        
+        FileInputFormat.addInputPath(job2, input);
+        FileOutputFormat.setOutputPath(job2, output);
+        job2.setMapOutputKeyClass(Center.class);
+        job2.setMapOutputValueClass(Point.class);
+
+        job2.setNumReduceTasks(0);
+
+        job2.waitForCompletion(true);
+
         //fs.delete(centers.getParent(), true);
         System.out.println("Number of iterations\t" + iterations);
     }
