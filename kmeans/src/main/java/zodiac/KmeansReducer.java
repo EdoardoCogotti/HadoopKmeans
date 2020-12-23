@@ -83,6 +83,8 @@ public class KmeansReducer extends Reducer<Center, Point, IntWritable, Center> {
             dist =  Math.sqrt(dist);
             avgValue += Math.pow(dist,2);
 
+            System.out.println("Centroid: "+ newCenterValue.toString());
+
             centerWriter.append(newCenterValue.getCenterIndex(), newCenterValue);
         }
         avgValue = Math.sqrt(avgValue / k);
