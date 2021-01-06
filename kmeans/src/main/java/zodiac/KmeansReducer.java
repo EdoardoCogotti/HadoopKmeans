@@ -27,10 +27,12 @@ public class KmeansReducer extends Reducer<Center, Point, IntWritable, Center> {
         Configuration configuration = context.getConfiguration();
 
         Center newCenter = new Center(configuration.getInt("numDimensions", 2));
-        boolean flagOld = false;
+        
         if (newCentersMap.containsKey(key.getCenterIndex())) {
             newCenter = newCentersMap.get(key.getCenterIndex());
-            flagOld = true;
+        }
+        else{
+            oldCentersMap.put(key.getCenterIndex(), new Center(key));
         }
 
         int newElements = 0;
@@ -45,10 +47,8 @@ public class KmeansReducer extends Reducer<Center, Point, IntWritable, Center> {
         newCenter.setCenterIndex(key.getCenterIndex());
         newCenter.addPoints(new IntWritable(newElements));
 
-        if (!flagOld) {
-            newCentersMap.put(newCenter.getCenterIndex(), newCenter);
-            oldCentersMap.put(key.getCenterIndex(), new Center(key));
-        }
+        //update newCentersMap with new points aggregation
+        newCentersMap.put(newCenter.getCenterIndex(), newCenter);
 
         context.write(newCenter.getCenterIndex(), newCenter);
     }
