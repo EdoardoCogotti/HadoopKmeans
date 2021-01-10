@@ -14,12 +14,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Kmeans {
+    static public long startJob;
+    static public long endJob;
 
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-
+        startJob = System.currentTimeMillis();
+        
         for(int i=0; i<5; i++)
             System.out.println(args[i]);
         Path input = new Path(args[0]);
@@ -35,7 +39,7 @@ public class Kmeans {
         configuration.setInt("numDimensions", numDimensions);
 
         Job job;
-
+        
         FileSystem fs = FileSystem.get(output.toUri(),configuration);
         if (fs.exists(output)) {
             System.out.println("Delete old output folder: " + output.toString());
@@ -79,9 +83,17 @@ public class Kmeans {
         job2.setNumReduceTasks(0);
 
         job2.waitForCompletion(true);
+        //task is completed
+        endJob = System.currentTimeMillis();
+        long TotTimeExecution = endJob - startJob;
+        long TotTimeExecutionMin;
+        long TotTimeExecutionSec;
+        TotTimeExecutionMin = TimeUnit.MILLISECONDS.toMinutes(TotTimeExecution);
+        TotTimeExecutionSec = TimeUnit.MILLISECONDS.toSeconds(TotTimeExecution)%60;
 
         //fs.delete(centers.getParent(), true);
         System.out.println("Number of iterations\t" + iterations);
+        System.out.println("Execution time:  min." + String.valueOf(TotTimeExecutionMin)+" "+String.valueOf(TotTimeExecutionSec)+" sec.");
     }
 
     private static void createCenters(int k, Configuration configuration, Path centers) throws IOException {
