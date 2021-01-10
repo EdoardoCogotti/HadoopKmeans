@@ -17,18 +17,23 @@ public class KmeansMapper extends Mapper<Object, Text, Center, Point> {
     private List<Center> centers = new ArrayList<Center>();
 
     protected void setup(Context context) throws IOException, InterruptedException {
-        Configuration configuration = context.getConfiguration();
-        Path centersPath = new Path(configuration.get("centersFilePath"));
-        SequenceFile.Reader reader = new SequenceFile.Reader(configuration, SequenceFile.Reader.file(centersPath));
+        //get centroid file from the configurations 
+        Path centersFilePath = new Path(context.getConfiguration().get("centersFilePath"));
+        SequenceFile.Reader centersFileReader = new SequenceFile.Reader(configuration, SequenceFile.Reader.file(centersFilePath));
+
         IntWritable key = new IntWritable();
         Center value = new Center();
-        while (reader.next(key, value)) {
+        //scroll all initial centroid in the file
+        while (centersFileReader.next(key, value)) {
+            //read center from file 
             Center c = new Center(value.getValues());
             c.setCenterCardinality(new IntWritable(0));
             c.setCenterIndex(key);
+
+            //save file locally
             centers.add(c);
         }
-        reader.close();
+        centersFileReader.close();
     }
 
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
