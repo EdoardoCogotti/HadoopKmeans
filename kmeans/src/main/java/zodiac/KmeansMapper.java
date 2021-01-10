@@ -17,9 +17,12 @@ public class KmeansMapper extends Mapper<Object, Text, Center, Point> {
     private List<Center> centers = new ArrayList<Center>();
 
     protected void setup(Context context) throws IOException, InterruptedException {
+        
+        
+        Configuration configFile = context.getConfiguration();
         //get centroid file from the configurations 
-        Path centersFilePath = new Path(context.getConfiguration().get("centersFilePath"));
-        SequenceFile.Reader centersFileReader = new SequenceFile.Reader(configuration, SequenceFile.Reader.file(centersFilePath));
+        Path centersFilePath = new Path(configFile.get("centersFilePath"));
+        SequenceFile.Reader centersFileReader = new SequenceFile.Reader(configFile, SequenceFile.Reader.file(centersFilePath));
 
         IntWritable key = new IntWritable();
         Center value = new Center();
