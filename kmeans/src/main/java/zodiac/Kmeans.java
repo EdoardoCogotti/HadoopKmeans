@@ -70,19 +70,7 @@ public class Kmeans {
             fs.delete(output, true);
             iterations++;
         }
-
-        Job job2 = Job.getInstance(configuration, "K means map");
-        job2.setJarByClass(Kmeans.class);
-        job2.setMapperClass(KmeansMapper.class);
-
-        FileInputFormat.addInputPath(job2, input);
-        FileOutputFormat.setOutputPath(job2, output);
-        job2.setMapOutputKeyClass(Center.class);
-        job2.setMapOutputValueClass(Point.class);
-
-        job2.setNumReduceTasks(0);
-
-        job2.waitForCompletion(true);
+        
         //task is completed
         endJob = System.currentTimeMillis();
         long TotTimeExecution = endJob - startJob;
